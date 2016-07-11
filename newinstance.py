@@ -35,6 +35,7 @@ def main():
       config_region = raw_input('Enter default region: ')
       config_profile = raw_input('Enter boto profile to use: ')
       config_secgroup = raw_input('Enter default security group: ')
+      config_bidprice = raw_input('Enter default bid price: ')
       config = {
         "configfile": {
            "defaults": {
@@ -42,7 +43,8 @@ def main():
              "key": config_keyname,
              "profile": config_profile,
              "subnet": config_subnet,
-             "secgroup": config_secgroup
+             "secgroup": config_secgroup,
+             "bidprice": config_bidprice
            }
         }
       }
@@ -95,7 +97,7 @@ if __name__ == '__main__':
     parser.add_argument('-r','--region',default=configuration['configfile']['defaults']['region'],help='AWS region to use' )
     parser.add_argument('-k','--keyname',default=configuration['configfile']['defaults']['key'],help='EC2 root key')
     parser.add_argument('-t','--type',default='m3.medium',help='instance type to use')
-    parser.add_argument('-b','--bid',default='0.015',help='bid price')
+    parser.add_argument('-b','--bid',default=configuration['configfile']['defaults']['bidprice'],help='bid price')
     parser.add_argument('-n','--name',help='instance name')
   else: 
     parser.add_argument('-o','--os',default='amzn',help='Type of instance (amzn/ubuntu)')
