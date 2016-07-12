@@ -12,7 +12,7 @@ def main():
   global configPath
   global configuration
 
-  validTypes = [ 'm3.medium', 'm3.large' ]
+  validTypes = [ 'm3.small', 'c1.medium','c3.large', 'm3.medium', 'm3.large' ]
   OSImages = { 
     'ubuntu': 'ami-f95ef58a',
     'amzn': 'ami-b0ac25c3'
