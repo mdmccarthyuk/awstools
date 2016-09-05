@@ -15,7 +15,8 @@ def main():
   validTypes = [ 'm3.small', 'c1.medium','c3.large', 'm3.medium', 'm3.large' ]
   OSImages = { 
     'ubuntu': 'ami-f95ef58a',
-    'amzn': 'ami-b0ac25c3'
+    'amzn': 'ami-b0ac25c3',
+    'amzn-pv': 'ami-23ab2250'
   }
 
   if args.os not in OSImages: 
@@ -30,26 +31,28 @@ def main():
       if confirm != 'y':
         print "Aborted by user"
         sys.exit(1)
-      config_keyname = raw_input('Enter ec2 root key name: ')
-      config_subnet = raw_input('Enter default ec2 subnet: ')
-      config_region = raw_input('Enter default region: ')
-      config_profile = raw_input('Enter boto profile to use: ')
-      config_secgroup = raw_input('Enter default security group: ')
-      config_bidprice = raw_input('Enter default bid price: ')
-      config = {
-        "configfile": {
-           "defaults": {
-             "region": config_region,
-             "key": config_keyname,
-             "profile": config_profile,
-             "subnet": config_subnet,
-             "secgroup": config_secgroup,
-             "bidprice": config_bidprice
-           }
-        }
+    config_keyname = raw_input('Enter ec2 root key name: ')
+    config_subnet = raw_input('Enter default ec2 subnet: ')
+    config_region = raw_input('Enter default region: ')
+    config_profile = raw_input('Enter boto profile to use: ')
+    config_secgroup = raw_input('Enter default security group: ')
+    config_bidprice = raw_input('Enter default bid price: ')
+    config = {
+      "configfile": {
+         "defaults": {
+           "region": config_region,
+           "key": config_keyname,
+           "profile": config_profile,
+           "subnet": config_subnet,
+           "secgroup": config_secgroup,
+           "bidprice": config_bidprice
+         }
       }
-      with open(configPath, 'w') as outfile:
-        json.dump(config, outfile, indent=2)
+    }
+    if not os.path.isdir(os.path.expanduser("~")+"/.awstool"):
+      os.mkdir(os.path.expanduser("~")+"/.awstool")
+    with open(configPath, 'w') as outfile:
+      json.dump(config, outfile, indent=2)
     print "Config file written"
     sys.exit(0)
 
