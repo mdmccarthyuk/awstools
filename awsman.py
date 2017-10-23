@@ -39,10 +39,25 @@ def cmd_sg(args):
         sys.exit(0)
 
 
-def do_sg_show(profile, region, id):
+def cmd_ami(args):
+    print("AMI Command")
+    if args.action == 'list':
+        do_ami_list(args.profile, args.region, args.id)
+        sys.exit(0)
+
+
+def do_ami_list(profile, region, ami_id):
     session = boto3.Session(profile_name=profile, region_name=region)
     ec2_con = session.client('ec2')
-    response = ec2_con.describe_security_groups(GroupIds=[id])
+    response = ec2_con.describe_images(Filters=[{"Name": 'owner-id', 'Values': [ami_id]}])
+    for image in response['Images']:
+        print image['ImageId'] + " : " + image['Name']
+
+
+def do_sg_show(profile, region, sg_id):
+    session = boto3.Session(profile_name=profile, region_name=region)
+    ec2_con = session.client('ec2')
+    response = ec2_con.describe_security_groups(GroupIds=[sg_id])
 
 
 def do_sg_list(profile, region):
@@ -121,6 +136,10 @@ def main(arguments):
     parser_sg = subparsers.add_parser('sg')
     parser_sg.add_argument('-a', '--action', choices=['list', 'show', 'add_rule', 'del_rule'])
     parser_sg.set_defaults(func=cmd_sg)
+
+    parser_ami = subparsers.add_parser('ami')
+    parser_ami.add_argument('-a', '--action', choices=['list', 'show', 'delete'])
+    parser_ami.set_defaults(func=cmd_ami)
 
     args = parser.parse_args(arguments)
     args.func(args)
