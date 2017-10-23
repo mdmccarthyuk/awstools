@@ -24,9 +24,43 @@ def cw_list_metrics():
 
 def cmd_ec2(args):
     print("EC2 Command")
-    if args.list:
+    if args.action == 'list':
         do_ec2_list(args.profile, args.region)
         sys.exit(0)
+
+
+def cmd_sg(args):
+    print("SG Command")
+    if args.action == 'show':
+        do_sg_show(args.profile, args.region, args.id)
+        sys.exit(0)
+    if args.action == 'list':
+        do_sg_list(args.profile, args.region)
+        sys.exit(0)
+
+
+def do_sg_show(profile, region, id):
+    session = boto3.Session(profile_name=profile, region_name=region)
+    ec2_con = session.client('ec2')
+    response = ec2_con.describe_security_groups(GroupIds=[id])
+
+
+def do_sg_list(profile, region):
+    session = boto3.Session(profile_name=profile, region_name=region)
+    ec2_con = session.client('ec2')
+    response = ec2_con.describe_security_groups()
+    print(response)
+    for sg in response['SecurityGroups']:
+        if 'Tags' in sg:
+            name = get_name_from_tags(sg['Tags'])
+        else:
+            name = "NO NAME"
+        print(name + ": " + sg['GroupId'])
+        print("  " + sg['Description'])
+        print("  Ingress:")
+        show_rules_in_response(sg['IpPermissions'])
+        print("  Egress:")
+        show_rules_in_response(sg['IpPermissionsEgress'])
 
 
 def do_ec2_list(profile, region):
@@ -34,17 +68,40 @@ def do_ec2_list(profile, region):
     ec2_con = session.client('ec2')
     response = ec2_con.describe_instances()
     for reservation in response['Reservations']:
+        name = ""
         for i in reservation['Instances']:
             if 'Tags' in i:
-                for tag in i['Tags']:
-                    if tag['Key'] == 'Name':
-                        name = tag['Value']
-                        break
-                else:
-                    name = ""
+                name = get_name_from_tags(i['Tags'])
             print "%s\t\t%s\t\t%s\t\t%s - %s" % (
                 i['InstanceId'], i['InstanceType'], i['State']['Name'],
                 i['PrivateIpAddress'] if 'PrivateIpAddress' in i else "", name)
+
+
+def show_rules_in_response(response):
+    for rule in response:
+        target = ""
+        if 'IpRanges' in rule:
+            for ip in rule['IpRanges']:
+                target = target + " " + ip['CidrIp']
+        if 'UserIdGroupPairs' in rule:
+            for pair in rule['UserIdGroupPairs']:
+                target = target + " " + pair['GroupId']
+        if 'FromPort' in rule:
+            print "    %s - %s %s : %s" % (
+                rule['FromPort'], rule['ToPort'], rule['IpProtocol'], target
+            )
+        else:
+            print "    Any - Any %s : %s" % (
+                rule['IpProtocol'], target
+            )
+
+
+def get_name_from_tags(tags):
+    for tag in tags:
+        if tag['Key'] == 'Name':
+            return tag['Value']
+    else:
+        return ""
 
 
 def main(arguments):
@@ -55,10 +112,15 @@ def main(arguments):
 
     parser.add_argument('-r', '--region', help="AWS Region", default="eu-west-2")
     parser.add_argument('-p', '--profile', help="Boto profile name", default="default")
+    parser.add_argument('-i', '--id', help='Item ID')
 
     parser_ec2 = subparsers.add_parser('ec2')
-    parser_ec2.add_argument('-l', '--list', action='store_true')
+    parser_ec2.add_argument('-a', '--action', choices=['list', 'show'])
     parser_ec2.set_defaults(func=cmd_ec2)
+
+    parser_sg = subparsers.add_parser('sg')
+    parser_sg.add_argument('-a', '--action', choices=['list', 'show', 'add_rule', 'del_rule'])
+    parser_sg.set_defaults(func=cmd_sg)
 
     args = parser.parse_args(arguments)
     args.func(args)
