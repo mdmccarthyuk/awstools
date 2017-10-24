@@ -58,24 +58,30 @@ def do_sg_show(profile, region, sg_id):
     session = boto3.Session(profile_name=profile, region_name=region)
     ec2_con = session.client('ec2')
     response = ec2_con.describe_security_groups(GroupIds=[sg_id])
-
-
+    for sg in response['SecurityGroups']:
+        show_security_group(sg)
+        
+        
 def do_sg_list(profile, region):
     session = boto3.Session(profile_name=profile, region_name=region)
     ec2_con = session.client('ec2')
     response = ec2_con.describe_security_groups()
     print(response)
     for sg in response['SecurityGroups']:
-        if 'Tags' in sg:
-            name = get_name_from_tags(sg['Tags'])
-        else:
-            name = "NO NAME"
-        print(name + ": " + sg['GroupId'])
-        print("  " + sg['Description'])
-        print("  Ingress:")
-        show_rules_in_response(sg['IpPermissions'])
-        print("  Egress:")
+        show_security_group(sg)
         show_rules_in_response(sg['IpPermissionsEgress'])
+
+
+def show_security_group(sg):
+    if 'Tags' in sg:
+        name = get_name_from_tags(sg['Tags'])
+    else:
+        name = "NO NAME"
+    print(name + ": " + sg['GroupId'])
+    print("  " + sg['Description'])
+    print("  Ingress:")
+    show_rules_in_response(sg['IpPermissions'])
+    print("  Egress:")
 
 
 def do_ec2_list(profile, region):
