@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 
 import sys
 import argparse
@@ -7,15 +7,15 @@ import boto3
 # import os
 
 
-def cw_list_metrics():
-    session = boto3.Session(profile_name="ers-dev", region_name="eu-west-2")
+def cw_list_metrics(args):
+    session = boto3.Session(profile_name=args.profile, region_name=args.region)
     cw_con = session.client('cloudwatch')
     paginator = cw_con.get_paginator('list_metrics')
     for response in paginator.paginate(Dimensions=[{'Name': 'InstanceId'}],
                                        Namespace='AWS/EC2',
                                        MetricName='CPUCreditBalance'):
         for metric in response['Metrics']:
-            print metric['Dimensions']
+            print(metric['Dimensions'])
             # start_time = datetime.date(2017, 10, 01)
             # end_time = datetime.date(2017, 10, 13)
             # response = cw_con.get_metric_statistics(Namespace='AWS/EC2', MetricName='CPUCreditBalance',
@@ -51,7 +51,7 @@ def do_ami_list(profile, region, ami_id):
     ec2_con = session.client('ec2')
     response = ec2_con.describe_images(Filters=[{"Name": 'owner-id', 'Values': [ami_id]}])
     for image in response['Images']:
-        print image['ImageId'] + " : " + image['Name']
+        print(image['ImageId'] + " : " + image['Name'])
 
 
 def do_sg_show(profile, region, sg_id):
@@ -93,9 +93,9 @@ def do_ec2_list(profile, region):
         for i in reservation['Instances']:
             if 'Tags' in i:
                 name = get_name_from_tags(i['Tags'])
-            print "%s\t\t%s\t\t%s\t\t%s - %s" % (
+            print("%s\t\t%s\t\t%s\t\t%s - %s" % (
                 i['InstanceId'], i['InstanceType'], i['State']['Name'],
-                i['PrivateIpAddress'] if 'PrivateIpAddress' in i else "", name)
+                i['PrivateIpAddress'] if 'PrivateIpAddress' in i else "", name))
 
 
 def show_rules_in_response(response):
@@ -108,13 +108,13 @@ def show_rules_in_response(response):
             for pair in rule['UserIdGroupPairs']:
                 target = target + " " + pair['GroupId']
         if 'FromPort' in rule:
-            print "    %s - %s %s : %s" % (
+            print("    %s - %s %s : %s" % (
                 rule['FromPort'], rule['ToPort'], rule['IpProtocol'], target
-            )
+            ))
         else:
-            print "    Any - Any %s : %s" % (
+            print("    Any - Any %s : %s" % (
                 rule['IpProtocol'], target
-            )
+            ))
 
 
 def get_name_from_tags(tags):
