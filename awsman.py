@@ -7,19 +7,11 @@ import boto3
 # import os
 
 
-def cw_list_metrics(args):
-    session = boto3.Session(profile_name=args.profile, region_name=args.region)
-    cw_con = session.client('cloudwatch')
-    paginator = cw_con.get_paginator('list_metrics')
-    for response in paginator.paginate(Dimensions=[{'Name': 'InstanceId'}],
-                                       Namespace='AWS/EC2',
-                                       MetricName='CPUCreditBalance'):
-        for metric in response['Metrics']:
-            print(metric['Dimensions'])
-            # start_time = datetime.date(2017, 10, 01)
-            # end_time = datetime.date(2017, 10, 13)
-            # response = cw_con.get_metric_statistics(Namespace='AWS/EC2', MetricName='CPUCreditBalance',
-            #                                         StartTime=start_time, EndTime=end_time, Period=15)
+def cmd_cw(args):
+    print("CW Command")
+    if args.action == 'list':
+        do_cw_list_metrics(args.profile, args.region)
+        sys.exit(0)
 
 
 def cmd_ec2(args):
@@ -44,6 +36,20 @@ def cmd_ami(args):
     if args.action == 'list':
         do_ami_list(args.profile, args.region, args.id)
         sys.exit(0)
+
+
+def do_cw_list_metrics(profile, region):
+    session = boto3.Session(profile_name=profile, region_name=region)
+    cw_con = session.client('cloudwatch')
+    paginator = cw_con.get_paginator('list_metrics')
+    for response in paginator.paginate(Dimensions=[{'Name': 'InstanceId'}],
+                                       Namespace='AWS/EC2'):
+        for metric in response['Metrics']:
+            print(metric['Dimensions'])
+            # start_time = datetime.date(2017, 10, 01)
+            # end_time = datetime.date(2017, 10, 13)
+            # response = cw_con.get_metric_statistics(Namespace='AWS/EC2', MetricName='CPUCreditBalance',
+            #                                         StartTime=start_time, EndTime=end_time, Period=15)
 
 
 def do_ami_list(profile, region, ami_id):
@@ -146,6 +152,10 @@ def main(arguments):
     parser_ami = subparsers.add_parser('ami')
     parser_ami.add_argument('-a', '--action', choices=['list', 'show', 'delete'])
     parser_ami.set_defaults(func=cmd_ami)
+
+    parser_cw = subparsers.add_parser('cw')
+    parser_cw.add_argument('-a', '--action', choices=['list', 'show'])
+    parser_cw.set_defaults(func=cmd_cw)
 
     args = parser.parse_args(arguments)
     args.func(args)
