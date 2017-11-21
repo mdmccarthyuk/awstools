@@ -69,7 +69,7 @@ def main(arguments):
     parser.add_argument('-r', '--region', help="AWS Region", default="eu-west-2")
     parser.add_argument('-p', '--profile', help="Boto profile name", default="default")
     parser.add_argument('-t', '--tags', help='Tags to match on [key=val;key2=val2]')
-    parser.add_argument('-c', '--command', help='Command to run')
+    parser.add_argument('-c', '--command', help='Command to run', default='null')
     parser.add_argument('-s', '--states', help='States to check for',
                         default="running,stopped,terminated,starting,stopping")
 

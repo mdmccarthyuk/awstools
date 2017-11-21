@@ -19,6 +19,9 @@ def cmd_ec2(args):
     if args.action == 'list':
         do_ec2_list(args.profile, args.region)
         sys.exit(0)
+    if args.action == 'spotlist':
+        do_ec2_spot_list(args.profile, args.region)
+        sys.exit(0)
 
 
 def cmd_sg(args):
@@ -104,6 +107,14 @@ def do_ec2_list(profile, region):
                 i['PrivateIpAddress'] if 'PrivateIpAddress' in i else "", name))
 
 
+def do_ec2_spot_list(profile, region):
+    session = boto3.Session(profile_name=profile, region_name=region)
+    ec2_con = session.client('ec2')
+    response = ec2_con.describe_spot_instance_requests()
+    for sir in response['SpotInstanceRequests']:
+        print(sir['Status']['Code'] + " " + sir[''])
+
+
 def show_rules_in_response(response):
     for rule in response:
         target = ""
@@ -142,7 +153,7 @@ def main(arguments):
     parser.add_argument('-i', '--id', help='Item ID')
 
     parser_ec2 = subparsers.add_parser('ec2')
-    parser_ec2.add_argument('-a', '--action', choices=['list', 'show'])
+    parser_ec2.add_argument('-a', '--action', choices=['list', 'show', 'spotlist'])
     parser_ec2.set_defaults(func=cmd_ec2)
 
     parser_sg = subparsers.add_parser('sg')
